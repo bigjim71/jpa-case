@@ -1,8 +1,11 @@
 package service;
 
+import domain.BookingException;
+import domain.Student;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.JPAUtil;
+import util.Option;
 
 
 /**
@@ -22,6 +25,17 @@ public class EnrollmentService {
   protected EnrollmentService() {
   }
 
+  public long registerStudent(String username) {
+    Student newStudent = new Student(username);
+    studentRepository.insert(newStudent);
+    return newStudent.getId();
 
+  }
+
+  public void registerStudentForEvent(long studentId, String title) throws BookingException {
+    Option<Student> studentOption = studentRepository.getStudent(studentId);
+    Student student = studentOption.getValueOrThrowException(BookingException.class, "Unknown student " + studentId);
+    student.registerForEvent(title);
+  }
 
 }
