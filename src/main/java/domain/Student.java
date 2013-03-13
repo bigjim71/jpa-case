@@ -5,9 +5,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.Months;
 
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * todo
@@ -20,7 +18,6 @@ public class Student {
   private Long id;
   private String username;
   private int tokens;
-  private String title;
 
   @Column(table = "Password")
   private String password;
@@ -32,6 +29,9 @@ public class Student {
   @Column(name = "email")
   @IndexColumn(name = "idx")
   private final List<String> emailAddresses = new LinkedList<>();
+
+  @ManyToMany
+  private Set<Course> registeredEvents = new HashSet<>();
 
   public Student(String username, String password, String initialEmailAddress) {
 
@@ -51,15 +51,29 @@ public class Student {
     return id;
   }
 
-  public void registerForEvent(String title) throws BookingException {
-    if (tokens ==0) throw new BookingException("Insufficient tokens");
+
+  public void registerForEvent(final Course event) throws BookingException {
+
+    if (this.registeredEvents.contains(event))
+      throw new BookingException("Student already registered on this event");
+
+
+    int tokensThisCourseCosts = event.getPriceInTokens();
+
+    if (tokens < tokensThisCourseCosts)
+      throw new BookingException("Not enough tokens");
+
     Months months = Months.monthsBetween(LocalDate.now(), this.card.getExpDate());
     if (months.getMonths() < 1) throw new BookingException("Your card expires in 1 month");
 
 
-    this.title = title;
-    tokens = tokens-1;
+    this.registeredEvents.add(event);
+    event._registerStudent(this);
+
+    tokens = tokens - tokensThisCourseCosts;
+
   }
+
 
   public void useCard(String creditCardNumber, LocalDate expDate) {
     this.card = new CreditCard(creditCardNumber,expDate);

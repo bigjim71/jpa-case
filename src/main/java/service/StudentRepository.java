@@ -1,5 +1,7 @@
 package service;
 
+import domain.Course;
+import domain.CourseTitle;
 import domain.Student;
 import util.JPAUtil;
 import util.Option;
@@ -23,20 +25,33 @@ public class StudentRepository {
   }
 
 
-  public void insert(Student student) {
+  public void insert(Object object) {
     EntityManager entityManager = JPAUtil.getEntityManager();
-    entityManager.persist(student);
+    entityManager.persist(object);
 
 
   }
 
   public Option<Student> getStudent(long studentId) {
-    EntityManager entityManager = JPAUtil.getEntityManager();
-    Student studentOrNull = entityManager.find(Student.class, studentId);
-    if (studentOrNull == null) return util.None.none ();
-    Student student = studentOrNull;
-    return new Some(student);
+    return get(Student.class,studentId);
+  }
 
+  public Option<Course> getCourse(long eventId) {
+    return get(Course.class,eventId);
 
   }
+
+  public Option<CourseTitle> getCourseTitle(long courseTitleId) {
+    return get(CourseTitle.class,courseTitleId);
+  }
+
+  private  <T> Option<T> get(Class<T> clazz, long id) {
+    EntityManager em = JPAUtil.getEntityManager();
+    T objectOrNull = em.find(clazz, id);
+    if (objectOrNull==null) return util.None.none ();
+    return new Some(objectOrNull);
+  }
+
+
+
 }

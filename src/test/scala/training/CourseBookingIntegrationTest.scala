@@ -3,7 +3,7 @@ package training
 
 import service.EnrollmentService
 import util.JPAUtil
-import domain.{Student, BookingException}
+import domain.{Student, Course,CourseTitle,BookingException}
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
@@ -15,7 +15,7 @@ import Q.interpolation
 import org.specs2.specification.Scope
 import org.joda.time.LocalDate
 import nl.jqno.equalsverifier.{Warning, EqualsVerifier}
-import java.sql.SQLData
+import java.sql.{Date, SQLData}
 
 /**
  * todo
@@ -67,29 +67,38 @@ class CourseBookingIntegrationTest extends Specification {
     }
 
     "book for a course and pay tokens" in new company {
-      service.registerStudentForEvent(studentId, "JB297")
+      service.registerStudentForEvent(studentId, courseId)
+
 
       db withSession {
         val tokens = sql"select tokens from Student where id=$studentId".as[Long].first()
-        tokens must beEqualTo(9)
+        tokens must beEqualTo(7)
       }
     }
 
-    "not book when insufficient tokens" in new company {
-      service.registerStudentForEvent(studentWithZeroTokenId, "JB297") must throwA[BookingException]
+    "not be able to book for a course which starts in less than two days" in new company {
+      service.registerStudentForEvent(studentId, courseInTwoDaysId) must throwA[BookingException]
 
     }
 
-    "book for event when insufficient card expires later than one month" in new company {
-      service.registerStudentForEvent(studentWithGoodCard, "JB297")
-      db withSession {
-        val title = sql"select title from Student where id=$studentWithGoodCard".as[String].first()
-        title must beEqualTo("JB297")
-      }
+    "not be able to book for a course on which he/she is already registerd" in new company {
+      service.registerStudentForEvent(studentId, courseId)
+
+      service.registerStudentForEvent(studentId, courseId) must throwA[BookingException]
+
+    }
+    "not be able to book on a full course" in new company {
+      service.registerStudentForEvent(studentId, fullCourseId) must throwA[BookingException]
+
     }
 
-    "not book for event when insufficient card expires within a month" in new company {
-      service.registerStudentForEvent(studentWithExpiringCard, "JB297") must throwA[BookingException]
+    "not be able to book when insufficient tokens" in new company {
+      service.registerStudentForEvent(studentWithOneTokenId, courseId) must throwA[BookingException]
+
+    }
+
+    "not book for event when card expires within a month" in new company {
+      service.registerStudentForEvent(studentWithExpiringCard, courseId) must throwA[BookingException]
 
     }
 
@@ -99,6 +108,14 @@ class CourseBookingIntegrationTest extends Specification {
   "equals contract" should {
     "be correct for Student" in {
       EqualsVerifier.forClass(classOf[Student]).suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE).verify()
+    }
+
+    "be correct for Course" in {
+      EqualsVerifier.forClass(classOf[Course]).suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE).verify()
+    }
+
+    "be correct for CourseTitle" in {
+      EqualsVerifier.forClass(classOf[CourseTitle]).suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE).verify()
     }
   }
 
@@ -114,24 +131,52 @@ class CourseBookingIntegrationTest extends Specification {
 
     // ids to use in the test
     val studentId = 1l
-    val studentWithZeroTokenId = 2l
+    val studentWithOneTokenId = 2l
     val studentWithExpiringCard = 3l
     val studentWithGoodCard = 4l
 
+
+    val jb297Id: Int = 1
+    val courseId = 1
+    val dateFourWeeksFromNow = new Date(LocalDate.now().plusWeeks(4).toDate.getTime)
+
+    val courseInTwoDaysId = 2
+    val dateInTwoDaysFromNow = new Date(LocalDate.now().plusDays(2).toDate.getTime)
+    val fullCourseId = 4
+    val expDateInLessThanMonth = new java.sql.Date(LocalDate.now().plusMonths(1).minusDays(1).toDate.getTime)
+    val expDateInOneMonth = new java.sql.Date(LocalDate.now().plusMonths(1).plusDays(1).toDate.getTime)
     // Seed the database
     db withSession {
 
+
+      sqlu"delete from Student_Course".execute
+      sqlu"delete from Course".execute
+      sqlu"delete from CourseTitle".execute
       sqlu"delete from Password".execute
       sqlu"delete from Student_emailAddresses".execute
       sqlu"delete from Student".execute
 
+      // Add a new course title
+      sqlu"insert into CourseTitle (id,courseCode,durationInDays,title) values ($jb297Id,'JB297',3,'JPA')".execute
 
-      sqlu"insert into Student (id,username,tokens) values ($studentId,'cindy',10)".execute
-      sqlu"insert into Student (id,username,tokens) values ($studentWithZeroTokenId,'narendra',0)".execute
-      val expDateInLessThanMonth = new java.sql.Date(LocalDate.now().plusMonths(1).minusDays(1).toDate.getTime)
-      sqlu"insert into Student (id,username,tokens,expDate) values ($studentWithExpiringCard,'john',10,$expDateInLessThanMonth)".execute
-      val expDateInOneMonth = new java.sql.Date(LocalDate.now().plusMonths(1).plusDays(1).toDate.getTime)
-      sqlu"insert into Student (id,username,tokens,expDate) values ($studentWithGoodCard,'ahmet',10,$expDateInOneMonth)".execute
+      //Plan three courses
+      sqlu"insert into Course (id,courseTitle_id,startDate) values ($courseId,$jb297Id,$dateFourWeeksFromNow)".execute
+      sqlu"insert into Course (id,courseTitle_id,startDate) values ($courseInTwoDaysId,$jb297Id,$dateInTwoDaysFromNow)".execute
+      sqlu"insert into Course (id,courseTitle_id,startDate) values ($fullCourseId,$jb297Id,$dateFourWeeksFromNow)".execute
+
+      for (i <- 1000 to 1010) {
+        val name ="janne"+i
+        sqlu"insert into Student (id,username,tokens) values ($i,$name,9)".execute
+        sqlu"insert into Student_Course (students_id,registeredEvents_id) values ($i,$fullCourseId)".execute
+      }
+
+      // Insert students
+      sqlu"insert into Student (id,username,tokens,cardNumber,expDate) values ($studentId,'cindy',10,'5555-4444-3333-2222',$expDateInOneMonth)".execute
+      sqlu"insert into Student (id,username,tokens,cardNumber,expDate) values ($studentWithOneTokenId,'narendra',1,'5555-4444-3333-2222',$expDateInOneMonth)".execute
+
+      sqlu"insert into Student (id,username,tokens,cardNumber,expDate) values ($studentWithExpiringCard,'john',10,'5555-4444-3333-2222',$expDateInLessThanMonth)".execute
+
+      sqlu"insert into Student (id,username,tokens,cardNumber,expDate) values ($studentWithGoodCard,'ahmet',10,'5555-4444-3333-2222',$expDateInOneMonth)".execute
 
 
 
