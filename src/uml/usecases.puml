@@ -1,0 +1,9 @@
+@startuml usecase_itertaion1.png
+
+
+student --> (register as student)
+student --> (register on course)
+
+
+
+@enduml

@@ -1,0 +1,30 @@
+@startuml
+
+
+class EnrollmentService{
+  long registerStudent(String username)
+  void registerStudentForEvent(long memberId, String title)
+}
+
+EnrollmentService ..> Student
+
+class StudentRepository{
+  void insert(Student m)
+  Option<Student> getStudent(long studentId)
+}
+
+EnrollmentService -> StudentRepository
+
+note right of Student : registering for course costs 1 token per course .\nEvery student gets 10 tokens.\nCan only register when sufficient tokens are available
+
+class Student {
+  Long id
+  String username
+  int tokens
+  String title
+  registerForEvent(String courseTitle)
+  Long getStudent()
+  Student(username)
+}
+
+@enduml
