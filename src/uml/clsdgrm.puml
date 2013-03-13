@@ -1,10 +1,13 @@
 @startuml
 
 
+
+
 class EnrollmentService{
-  long registerStudent(String username)
+  long registerStudent(String username, String password, String creditCardNumber, LocalDate expDate, String initialEmail)
   void registerStudentForEvent(long memberId, String title)
 }
+note top of EnrollmentService:Improve overall robustness (especially null values)
 
 EnrollmentService ..> Student
 
@@ -15,16 +18,31 @@ class StudentRepository{
 
 EnrollmentService -> StudentRepository
 
-note right of Student : registering for course costs 1 token per course .\nEvery student gets 10 tokens.\nCan only register when sufficient tokens are available
+note right of Student : registering for course costs 1 token per course .\nEvery student gets 10 tokens.\nCan only register when sufficient tokens are available.\nCan not register when credit card expires in less than a month
 
 class Student {
   Long id
   String username
+  String password
+  Set<String> emailAddresses
   int tokens
   String title
   registerForEvent(String courseTitle)
   Long getStudent()
-  Student(username)
+  Student(String username, String password, String initialEmailAddress)
+  useCard(String creditCardNumber, LocalDate expDate)
+  equals() : boolean
+  hashcode() :int
 }
+
+class CreditCard{
+  String cardNumber;
+  Date expDate;
+  CreditCard(String cardNumber, LocalDate expDate)
+  equals() : boolean
+  hashcode() :int
+}
+
+Student *-- CreditCard
 
 @enduml
