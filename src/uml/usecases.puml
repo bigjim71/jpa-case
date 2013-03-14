@@ -3,6 +3,8 @@
 
 student --> (register as student)
 student --> (register on course)
+Admin --> (Add New Courses)
+Admin --> (Plan courses)
 
 
 
