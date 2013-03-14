@@ -8,6 +8,7 @@ class EnrollmentService{
   registerStudentForEvent(long studentId, long eventId)
   addNewCourseTitle(String code, Days days, String title)
   scheduleCourses(long courseTitleId, LocalDate... dates)
+  scheduleSeminar(String code, LocalDate startDate, String title, int costInTokens)
 }
 note top of EnrollmentService:Improve overall robustness (especially null values)
 
@@ -16,7 +17,7 @@ EnrollmentService ..> Student
 class StudentRepository{
   void insert(Object o)
   Option<Student> getStudent(long studentId)
-  Option<Course> getCourse(long eventId)
+  Option<Event> getEvent(long eventId)
   Option<CourseTitle> getCourseTitle(long courseTitleId)
   -<T> Option<T> get(Class<T> clazz, long id)
 }
@@ -31,7 +32,7 @@ class Student {
   String password
   Set<String> emailAddresses
   int tokens
-  registerForEvent(Course event)
+  registerForEvent(Event event)
   Long getStudent()
   Student(String username, String password, String initialEmailAddress)
   useCard(String creditCardNumber, LocalDate expDate)
@@ -49,14 +50,35 @@ class CreditCard{
 
 Student *-- CreditCard
 
-Class Course{
+abstract class Event{
    Long id
    Date startDate
+   Event(LocalDate startDate)
+   ~{template} void _registerStudent(Student student)
+   #canRegister(Student student)
+   {abstract} int getPriceInTokens()
+   boolean hasRegistrations()
+
+}
+
+Event <|-- Course
+Event <|-- Seminar
+
+Class Course{
    int getPriceInTokens()
    ~Course(LocalDate date, CourseTitle courseTitle)
-   ~_registerStudent(Student student)
+   #canRegister(Student student)
+   int getPriceInTokens()
    equals() : boolean
    hashcode() :int
+}
+
+class Seminar{
+  String code;
+  String title;
+  int costInTokens;
+  Seminar(String code, LocalDate startDate, String title, int costInTokens)
+  int getPriceInTokens()
 }
 
 
@@ -75,7 +97,7 @@ class CourseTitle{
 }
 
 
-Student "0..10" -- "*" Course
+Student "*" -- "*" Event
 Course "*" -- "1" CourseTitle
 
 @enduml

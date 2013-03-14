@@ -31,7 +31,7 @@ public class Student {
   private final List<String> emailAddresses = new LinkedList<>();
 
   @ManyToMany
-  private Set<Course> registeredEvents = new HashSet<>();
+  private Set<Event> registeredEvents = new HashSet<>();
 
   public Student(String username, String password, String initialEmailAddress) {
 
@@ -52,7 +52,7 @@ public class Student {
   }
 
 
-  public void registerForEvent(final Course event) throws BookingException {
+  public void registerForEvent(final Event event) throws BookingException {
 
     if (this.registeredEvents.contains(event))
       throw new BookingException("Student already registered on this event");

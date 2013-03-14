@@ -1,7 +1,7 @@
 package service;
 
-import domain.Course;
 import domain.CourseTitle;
+import domain.Event;
 import domain.Student;
 import util.JPAUtil;
 import util.Option;
@@ -36,8 +36,8 @@ public class StudentRepository {
     return get(Student.class,studentId);
   }
 
-  public Option<Course> getCourse(long eventId) {
-    return get(Course.class,eventId);
+  public Option<Event> getEvent(long eventId) {
+    return get(Event.class,eventId);
 
   }
 

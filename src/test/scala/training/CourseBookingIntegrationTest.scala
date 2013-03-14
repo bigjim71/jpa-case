@@ -3,7 +3,7 @@ package training
 
 import service.EnrollmentService
 import util.JPAUtil
-import domain.{Student, Course,CourseTitle,BookingException}
+import domain._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
@@ -76,6 +76,15 @@ class CourseBookingIntegrationTest extends Specification {
       }
     }
 
+    "be able to book for a seminar and pay tokens" in new company {
+      service.registerStudentForEvent(studentId, seminarId)
+
+      db withSession {
+        val tokens = sql"select tokens from Student where id=$studentId".as[Long].first()
+        tokens must beEqualTo(6)
+      }
+    }
+
     "not be able to book for a course which starts in less than two days" in new company {
       service.registerStudentForEvent(studentId, courseInTwoDaysId) must throwA[BookingException]
 
@@ -85,21 +94,22 @@ class CourseBookingIntegrationTest extends Specification {
       service.registerStudentForEvent(studentId, courseId)
 
       service.registerStudentForEvent(studentId, courseId) must throwA[BookingException]
-
     }
+
     "not be able to book on a full course" in new company {
       service.registerStudentForEvent(studentId, fullCourseId) must throwA[BookingException]
-
     }
 
-    "not be able to book when insufficient tokens" in new company {
+    "not be able to book for a course when insufficient tokens" in new company {
       service.registerStudentForEvent(studentWithOneTokenId, courseId) must throwA[BookingException]
+    }
 
+    "not be able to book for a seminar when insufficient tokens" in new company {
+      service.registerStudentForEvent(studentWithOneTokenId, seminarId) must throwA[BookingException]
     }
 
     "not book for event when card expires within a month" in new company {
       service.registerStudentForEvent(studentWithExpiringCard, courseId) must throwA[BookingException]
-
     }
 
 
@@ -110,7 +120,7 @@ class CourseBookingIntegrationTest extends Specification {
       service.scheduleCourses(courseId, LocalDate.now().plusWeeks(5), LocalDate.now().plusWeeks(10))
 
       db withSession {
-        val numberOfCoursesAfter = sql"select count(*) from Course where courseTitle_id=$jb297Id".as[Long].first()
+        val numberOfCoursesAfter = sql"select count(*) from Event where courseTitle_id=$jb297Id".as[Long].first()
         numberOfCoursesAfter must beEqualTo(3+2)
       }
     }
@@ -122,8 +132,13 @@ class CourseBookingIntegrationTest extends Specification {
     }
 
     "be correct for Course" in {
-      EqualsVerifier.forClass(classOf[Course]).suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE).verify()
+      EqualsVerifier.forClass(classOf[Course]).withRedefinedSuperclass().suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE).verify()
     }
+
+    "be correct for Seminar" in {
+      EqualsVerifier.forClass(classOf[Seminar]).withRedefinedSuperclass().suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE).verify()
+    }
+
 
     "be correct for CourseTitle" in {
       EqualsVerifier.forClass(classOf[CourseTitle]).suppress(Warning.NULL_FIELDS, Warning.STRICT_INHERITANCE).verify()
@@ -156,12 +171,13 @@ class CourseBookingIntegrationTest extends Specification {
     val fullCourseId = 4
     val expDateInLessThanMonth = new java.sql.Date(LocalDate.now().plusMonths(1).minusDays(1).toDate.getTime)
     val expDateInOneMonth = new java.sql.Date(LocalDate.now().plusMonths(1).plusDays(1).toDate.getTime)
+    val seminarId = 5
     // Seed the database
     db withSession {
 
 
-      sqlu"delete from Student_Course".execute
-      sqlu"delete from Course".execute
+      sqlu"delete from Student_Event".execute
+      sqlu"delete from Event".execute
       sqlu"delete from CourseTitle".execute
       sqlu"delete from Password".execute
       sqlu"delete from Student_emailAddresses".execute
@@ -171,15 +187,18 @@ class CourseBookingIntegrationTest extends Specification {
       sqlu"insert into CourseTitle (id,courseCode,durationInDays,title) values ($jb297Id,'JB297',3,'JPA')".execute
 
       //Plan three courses
-      sqlu"insert into Course (id,courseTitle_id,startDate) values ($courseId,$jb297Id,$dateFourWeeksFromNow)".execute
-      sqlu"insert into Course (id,courseTitle_id,startDate) values ($courseInTwoDaysId,$jb297Id,$dateInTwoDaysFromNow)".execute
-      sqlu"insert into Course (id,courseTitle_id,startDate) values ($fullCourseId,$jb297Id,$dateFourWeeksFromNow)".execute
+      sqlu"insert into Event (type,id,courseTitle_id,startDate) values ('C',$courseId,$jb297Id,$dateFourWeeksFromNow)".execute
+      sqlu"insert into Event (type,id,courseTitle_id,startDate) values ('C',$courseInTwoDaysId,$jb297Id,$dateInTwoDaysFromNow)".execute
+      sqlu"insert into Event (type,id,courseTitle_id,startDate) values ('C',$fullCourseId,$jb297Id,$dateFourWeeksFromNow)".execute
 
       for (i <- 1000 to 1010) {
         val name ="janne"+i
         sqlu"insert into Student (id,username,tokens) values ($i,$name,9)".execute
-        sqlu"insert into Student_Course (students_id,registeredEvents_id) values ($i,$fullCourseId)".execute
+        sqlu"insert into Student_Event (students_id,registeredEvents_id) values ($i,$fullCourseId)".execute
       }
+
+      // Plan one seminar
+      sqlu"insert into Event (type, id,code,costInTokens,title,startDate) values ('S',$seminarId,'SEM1',4,'JPA Performance',$dateFourWeeksFromNow)".execute()
 
       // Insert students
       sqlu"insert into Student (id,username,tokens,cardNumber,expDate) values ($studentId,'cindy',10,'5555-4444-3333-2222',$expDateInOneMonth)".execute

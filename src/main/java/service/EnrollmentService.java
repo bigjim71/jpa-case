@@ -1,9 +1,6 @@
 package service;
 
-import domain.BookingException;
-import domain.Course;
-import domain.CourseTitle;
-import domain.Student;
+import domain.*;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -49,9 +46,9 @@ public class EnrollmentService {
     Option<Student> studentOption = studentRepository.getStudent(studentId);
     Student student = studentOption.assertAndGet("Unknown student " + studentId);
 
-    Option<Course> eventOption = studentRepository.getCourse(eventId);
+    Option<Event> eventOption = studentRepository.getEvent(eventId);
 
-    Course event = eventOption.assertAndGet("Unknown course id");
+    Event event = eventOption.assertAndGet("Unknown event id");
     student.registerForEvent(event);
   }
 
@@ -69,6 +66,12 @@ public class EnrollmentService {
     Option<CourseTitle> courseTitleOption = studentRepository.getCourseTitle(courseTitleId);
     CourseTitle courseTitle = courseTitleOption.assertAndGet("Unknown course title" + courseTitleId);
     courseTitle.schedule(dates);
+  }
+
+  public long scheduleSeminar(String code, LocalDate startDate, String title, int costInTokens) {
+    Seminar newSeminar = new Seminar(code, startDate, title, costInTokens);
+    studentRepository.insert(newSeminar);
+    return newSeminar.getId();
   }
 
 }
