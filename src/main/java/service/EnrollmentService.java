@@ -68,7 +68,7 @@ public class EnrollmentService {
     if (dates==null) throw new IllegalArgumentException("dates is null");
     Option<CourseTitle> courseTitleOption = studentRepository.getCourseTitle(courseTitleId);
     CourseTitle courseTitle = courseTitleOption.assertAndGet("Unknown course title" + courseTitleId);
-    courseTitle.schedule(dates);
+    courseTitle.scheduleCourses(dates);
   }
 
 }

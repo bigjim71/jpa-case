@@ -47,7 +47,7 @@ public class CourseTitle {
     return Days.days(durationInDays);
   }
 
-  public void schedule(LocalDate... dates) {
+  public void scheduleCourses(LocalDate... dates) {
     for (LocalDate dateTime : dates) {
       Course course = new Course(dateTime, this);
       this.scheduledCourses.add(course);
