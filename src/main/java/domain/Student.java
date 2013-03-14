@@ -102,4 +102,12 @@ public class Student {
   public int hashCode() {
     return username.hashCode();
   }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public int getTokens() {
+    return tokens;
+  }
 }

@@ -9,6 +9,8 @@ class EnrollmentService{
   addNewCourseTitle(String code, Days days, String title)
   scheduleCourses(long courseTitleId, LocalDate... dates)
   scheduleSeminar(String code, LocalDate startDate, String title, int costInTokens)
+  Option<Long> findCourse(long courseTitleId, LocalDate fromDate, LocalDate toDate)
+  Option<StudentInfo> findStudent(String username)
 }
 note top of EnrollmentService:Improve overall robustness (especially null values)
 
@@ -19,6 +21,8 @@ class StudentRepository{
   Option<Student> getStudent(long studentId)
   Option<Event> getEvent(long eventId)
   Option<CourseTitle> getCourseTitle(long courseTitleId)
+  Option<Student> findStudent(String username)
+  findCourse(long courseTitleId, LocalDate fromDate, LocalDate toDate)
   -<T> Option<T> get(Class<T> clazz, long id)
 }
 

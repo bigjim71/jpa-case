@@ -113,6 +113,15 @@ class CourseBookingIntegrationTest extends Specification {
     }
 
 
+    "be found by name" in new company{
+      val courseOption = service.findCourse(jb297Id, LocalDate.now(), LocalDate.now().plusWeeks(10))
+
+
+      courseOption.assertAndGet("could not find") must beOneOf(courseId,courseInTwoDaysId)
+
+    }
+
+
   }
 
   "a course" should {
@@ -124,7 +133,18 @@ class CourseBookingIntegrationTest extends Specification {
         numberOfCoursesAfter must beEqualTo(3+2)
       }
     }
+
+    "be found if seats are available" in new company{
+      val studentInfoOption = service.findStudent("cindy");
+
+
+      studentInfoOption.assertAndGet("could not find").getUsername must beEqualTo("cindy")
+
+    }
+
   }
+
+
 
   "equals contract" should {
     "be correct for Student" in {

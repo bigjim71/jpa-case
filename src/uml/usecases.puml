@@ -3,6 +3,9 @@
 
 student --> (register as student)
 student --> (register on Event)
+student --> (Find Course)
+
+Admin --> (Find Student)
 Admin --> (Add new Course)
 Admin --> (Plan Course)
 Admin --> (Plan Seminar)

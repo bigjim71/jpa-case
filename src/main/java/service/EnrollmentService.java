@@ -74,4 +74,30 @@ public class EnrollmentService {
     return newSeminar.getId();
   }
 
+  public Option<StudentInfo> findStudent(String username) {
+    Option<Student> studentOption = studentRepository.findStudent(username);
+    return studentOption.map(new Option.Mapper<Student, StudentInfo>() {
+      @Override
+      public StudentInfo map(Student student) {
+        return new StudentInfo(student.getId(), student.getUsername(), student.getTokens());
+      }
+    });
+  }
+
+  public Option<Long> findCourse(long courseTitleId, LocalDate fromDate, LocalDate toDate)  {
+    Option<Course> course = studentRepository.findCourse(courseTitleId, fromDate, toDate);
+
+    Option<Long> longOption = course.map(new Option.Mapper<Course, Long>() {
+      @Override
+      public Long map(Course course) {
+        return course.getId();
+      }
+    });
+
+    return longOption;
+
+
+  }
+
+
 }
