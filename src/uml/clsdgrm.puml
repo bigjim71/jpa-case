@@ -23,7 +23,7 @@ class StudentRepository{
 
 EnrollmentService -> StudentRepository
 
-note right of Student : registering for course costs 1 token per course .\nEvery student gets 10 tokens.\nCan only register when sufficient tokens are available.\nCan not register when credit card expires in less than a month
+note right of Student : registering for course costs 1 token per course day .\nEvery student gets 10 tokens.\nCan only register when sufficient tokens are available.\nCan not register when credit card expires in less than a month\nyou can only register for courses starting in more than two days\nYou can only register for courses with less than 10 students on it
 
 class Student {
   Long id
@@ -53,7 +53,7 @@ Class Course{
    Long id
    Date startDate
    int getPriceInTokens()
-   ~Course(DateTime date, CourseTitle courseTitle)
+   ~Course(LocalDate date, CourseTitle courseTitle)
    ~_registerStudent(Student student)
    equals() : boolean
    hashcode() :int

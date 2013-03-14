@@ -1,10 +1,10 @@
-@startuml usecase_itertaion1.png
+@startuml
 
 
 student --> (register as student)
-student --> (register on course)
-Admin --> (Add New Courses)
-Admin --> (Plan courses)
+student --> (register on Course)
+Admin --> (Add new Course)
+Admin --> (Plan Course)
 
 
 

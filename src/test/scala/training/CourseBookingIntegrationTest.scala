@@ -81,7 +81,7 @@ class CourseBookingIntegrationTest extends Specification {
 
     }
 
-    "not be able to book for a course on which he/she is already registerd" in new company {
+    "not be able to book for a course on which he/she is already registered" in new company {
       service.registerStudentForEvent(studentId, courseId)
 
       service.registerStudentForEvent(studentId, courseId) must throwA[BookingException]
@@ -103,6 +103,17 @@ class CourseBookingIntegrationTest extends Specification {
     }
 
 
+  }
+
+  "a course" should {
+    "be available after planning" in new company {
+      service.scheduleCourses(courseId, LocalDate.now().plusWeeks(5), LocalDate.now().plusWeeks(10))
+
+      db withSession {
+        val numberOfCoursesAfter = sql"select count(*) from Course where courseTitle_id=$jb297Id".as[Long].first()
+        numberOfCoursesAfter must beEqualTo(3+2)
+      }
+    }
   }
 
   "equals contract" should {
