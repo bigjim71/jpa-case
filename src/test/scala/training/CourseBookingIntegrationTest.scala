@@ -118,6 +118,8 @@ class CourseBookingIntegrationTest extends Specification {
     val studentWithExpiringCard = 3l
     val studentWithGoodCard = 4l
 
+    val expDateInOneMonth = new java.sql.Date(LocalDate.now().plusMonths(1).plusDays(1).toDate.getTime)
+    val expDateInLessThanMonth = new java.sql.Date(LocalDate.now().plusMonths(1).minusDays(1).toDate.getTime)
     // Seed the database
     db withSession {
 
@@ -126,11 +128,11 @@ class CourseBookingIntegrationTest extends Specification {
       sqlu"delete from Student".execute
 
 
-      sqlu"insert into Student (id,username,tokens) values ($studentId,'cindy',10)".execute
-      sqlu"insert into Student (id,username,tokens) values ($studentWithZeroTokenId,'narendra',0)".execute
-      val expDateInLessThanMonth = new java.sql.Date(LocalDate.now().plusMonths(1).minusDays(1).toDate.getTime)
+      sqlu"insert into Student (id,username,tokens,expDate) values ($studentId,'cindy',10,$expDateInOneMonth)".execute
+      sqlu"insert into Student (id,username,tokens,expDate) values ($studentWithZeroTokenId,'narendra',0,$expDateInOneMonth)".execute
+
       sqlu"insert into Student (id,username,tokens,expDate) values ($studentWithExpiringCard,'john',10,$expDateInLessThanMonth)".execute
-      val expDateInOneMonth = new java.sql.Date(LocalDate.now().plusMonths(1).plusDays(1).toDate.getTime)
+
       sqlu"insert into Student (id,username,tokens,expDate) values ($studentWithGoodCard,'ahmet',10,$expDateInOneMonth)".execute
 
 

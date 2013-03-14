@@ -1,6 +1,6 @@
 package domain;
 
-import org.hibernate.annotations.IndexColumn;
+
 import org.joda.time.LocalDate;
 import org.joda.time.Months;
 
@@ -30,7 +30,7 @@ public class Student {
 
   @ElementCollection
   @Column(name = "email")
-  @IndexColumn(name = "idx")
+  @OrderColumn(name = "idx")
   private final List<String> emailAddresses = new LinkedList<>();
 
   public Student(String username, String password, String initialEmailAddress) {
