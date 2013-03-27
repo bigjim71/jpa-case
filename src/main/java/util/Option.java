@@ -74,12 +74,18 @@ public class Option<T> {
       final Constructor<E> constructor = e.getConstructor(String.class);
       exception = constructor.newInstance(message);
       throw exception;
-    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e1) {
-      throw new RuntimeException(e1);
 
     } catch (NoSuchMethodException e1) {
       throw new RuntimeException(new StringBuilder().append("Class ").append(e.getName()).append(" does not have a constructor taking a String").toString(), e1);
 
+    } catch (InvocationTargetException e1) {
+      throw new RuntimeException(e1);
+
+    } catch (InstantiationException e1) {
+      throw new RuntimeException(e1);
+
+    } catch (IllegalAccessException e1) {
+      throw new RuntimeException(e1);
     }
   }
 }
