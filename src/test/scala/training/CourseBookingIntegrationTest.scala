@@ -114,10 +114,9 @@ class CourseBookingIntegrationTest extends Specification {
 
 
     "be found by name" in new company{
-      val courseOption = service.findCourse(jb297Id, LocalDate.now(), LocalDate.now().plusWeeks(10))
+      val studentInfoOption = service.findStudent("cindy");
 
-
-      courseOption.assertAndGet("could not find") must beOneOf(courseId,courseInTwoDaysId)
+      studentInfoOption.assertAndGet("could not find").getUsername must beEqualTo("cindy")     
 
     }
 
@@ -135,11 +134,10 @@ class CourseBookingIntegrationTest extends Specification {
     }
 
     "be found if seats are available" in new company{
-      val studentInfoOption = service.findStudent("cindy");
+      val courseOption = service.findCourse(jb297Id, LocalDate.now(), LocalDate.now().plusWeeks(10))
 
 
-      studentInfoOption.assertAndGet("could not find").getUsername must beEqualTo("cindy")
-
+      courseOption.assertAndGet("could not find") must beOneOf(courseId,courseInTwoDaysId)
     }
 
   }
